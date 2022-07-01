@@ -1,5 +1,6 @@
 import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { TicketItem } from "./TicketItem";
+import { PlayStatus } from "./types";
 import { User } from "./User";
 
 
@@ -16,7 +17,7 @@ export class Ticket {
     type: 'enum',
     enum: ['PENDING', 'WON', 'LOST']
   })
-  status: 'PENDING' | 'WON' | 'LOST';
+  status: PlayStatus
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', onUpdate: 'SET NULL' })
   user?: User;
@@ -24,4 +25,10 @@ export class Ticket {
 
   @OneToMany(() => TicketItem, i => i.ticket, { cascade: ['insert'] })
   items: TicketItem[]
+
+  @Column()
+  amount: number;
+
+  @Column()
+  posibleWin: number;
 }

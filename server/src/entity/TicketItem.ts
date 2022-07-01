@@ -1,6 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 import { Quota } from "./Quota";
 import { Ticket } from "./Ticket";
+import { PlayStatus } from "./types";
 
 
 
@@ -22,12 +23,6 @@ export class TicketItem {
 
   @Column()
   quotaValue: number;
-
-  @Column({
-    type: 'enum',
-    enum: ['PENDING', 'WON', 'LOST']
-  })
-  status: 'PENDING' | 'WON' | 'LOST';
 
   @ManyToOne(() => Quota, { onDelete: 'SET NULL', onUpdate: 'SET NULL' })
   @JoinColumn({ name: 'quotaId' })

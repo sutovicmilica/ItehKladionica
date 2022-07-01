@@ -1,6 +1,7 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Game } from "./Game";
 import { Play } from "./Play";
+import { PlayStatus } from "./types";
 
 
 
@@ -18,5 +19,11 @@ export class Quota {
 
   @ManyToOne(() => Play)
   play: Play;
+
+  @Column({
+    type: 'enum',
+    enum: ['PENDING', 'WON', 'LOST']
+  })
+  status: PlayStatus;
 }
 
