@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { IsNull, Not } from "typeorm";
 import { AppDataSource } from "../data-source";
 import { Game } from "../entity/Game";
 import { Play } from "../entity/Play";
@@ -18,6 +19,21 @@ export async function getQuotas(request: Request, response: Response) {
     relations: {
       play: true,
       game: true
+    }
+  });
+  response.json(quotas);
+}
+
+export async function getQuotasClient(request: Request, response: Response) {
+
+  const quotas = await AppDataSource.getRepository(Quota).find({
+    relations: {
+      play: true,
+      game: {}
+    },
+    where: {
+      game: Not(null),
+      status: Not('CANCELED')
     }
   });
   response.json(quotas);

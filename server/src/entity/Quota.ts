@@ -14,16 +14,16 @@ export class Quota {
   @Column()
   value: number;
 
-  @ManyToOne(() => Game)
-  game: Game;
+  @ManyToOne(() => Game, { onDelete: 'SET NULL' })
+  game?: Game;
 
   @ManyToOne(() => Play)
   play: Play;
 
   @Column({
     type: 'enum',
-    enum: ['PENDING', 'WON', 'LOST']
+    enum: ['PENDING', 'WON', 'LOST', 'CANCELED']
   })
-  status: PlayStatus;
+  status: PlayStatus | 'CANCELED';
 }
 
