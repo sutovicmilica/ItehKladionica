@@ -1,12 +1,11 @@
 import { Request, Response } from "express";
-import { IsNull, Not } from "typeorm";
+import { Not } from "typeorm";
 import { AppDataSource } from "../data-source";
 import { Game } from "../entity/Game";
 import { Play } from "../entity/Play";
 import { Quota } from "../entity/Quota";
 import { Ticket } from "../entity/Ticket";
 import { TicketItem } from "../entity/TicketItem";
-import { PlayStatus } from "../entity/types";
 interface QuotaDto {
   value: number,
   gameId: number,
