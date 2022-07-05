@@ -1,11 +1,10 @@
 import { NextFunction, Request, Response } from "express"
-import { createQuery } from "mysql2/typings/mysql/lib/Connection";
 import { Play } from "./entity/Play";
 import { Team } from "./entity/Team";
 import { User } from "./entity/User"
 import { getEntities } from "./handler/basicHandler";
 import { createGame, deleteGame, getGames } from "./handler/gameHandler";
-import { changeStatus, getQuotas, getQuotasClient } from "./handler/quotaHandler";
+import { changeStatus, createQuota, getQuotas, getQuotasClient } from "./handler/quotaHandler";
 import { createTicket, getAdminTickets, getClientTickets } from "./handler/ticketHandler";
 import { check } from "./handler/userHandler";
 
@@ -70,7 +69,7 @@ export const Routes: Route[] = [
   {
     method: 'post',
     path: '/admin/quota',
-    actions: [typeMiddleware('admin'), createQuery]
+    actions: [typeMiddleware('admin'), createQuota]
   },
   {
     method: 'patch',

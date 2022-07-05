@@ -11,7 +11,7 @@ export class Quota {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ type: 'decimal' })
   value: number;
 
   @ManyToOne(() => Game, { onDelete: 'SET NULL' })

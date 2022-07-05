@@ -1,5 +1,12 @@
 import "reflect-metadata"
 import { DataSource } from "typeorm"
+import { Game } from "./entity/Game"
+import { Play } from "./entity/Play"
+import { Quota } from "./entity/Quota"
+import { Team } from "./entity/Team"
+import { Ticket } from "./entity/Ticket"
+import { TicketItem } from "./entity/TicketItem"
+import { User } from "./entity/User"
 
 export const AppDataSource = new DataSource({
     type: "mysql",
@@ -9,6 +16,6 @@ export const AppDataSource = new DataSource({
     password: "",
     database: "kladionica",
     logging: false,
-    entities: ["src/entity/**/*.ts"],
-    migrations: ["src/migration/**/*.ts"]
+    entities: [Game, Play, Quota, Team, Ticket, TicketItem, User],
+    migrations: ["src/migration/**/*.ts"],
 })

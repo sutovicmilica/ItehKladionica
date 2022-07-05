@@ -27,15 +27,22 @@ export async function createGame(request: Request, response: Response) {
 export async function getGames(request: Request, response: Response) {
   const page = Number(request.query.page) || 0;
   const size = Number(request.query.size) || 20;
-  const date = Number(request.query.size) || undefined;
+  const date = Number(request.query.date) || undefined;
+  const search = request.query.search || '';
 
   const queryBuilder = AppDataSource.getRepository(Game)
     .createQueryBuilder('g')
-
+    .leftJoinAndSelect('g.host', 'host')
+    .leftJoinAndSelect('g.guest', 'guest')
   if (date) {
-    queryBuilder.where('DATE(g.date) = DATE(:d)', { d: date });
+    queryBuilder.where('DATE(g.date) >= DATE(:d)', { d: date });
   }
-  const [games, count] = await queryBuilder.limit(size).offset(page * size).getManyAndCount();
+  if (search) {
+    queryBuilder.where(`CONCAT(g.host.name,'-',g.guest.name) LIKE :search`, {
+      search: `%${search}%`
+    })
+  }
+  const [games, count] = await queryBuilder.orderBy('g.date', 'ASC').limit(size).offset(page * size).getManyAndCount();
   response.json({
     data: games,
     total: count
@@ -46,6 +53,9 @@ export async function deleteGame(request: Request, response: Response) {
   const id = Number(request.params.id);
 
   await AppDataSource.manager.transaction(async manager => {
+    const game = manager.findOne(Game, {
+      where: { id: id }
+    });
     const ticketItems = await manager.find(TicketItem, {
       where: {
         quota: {

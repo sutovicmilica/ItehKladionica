@@ -17,7 +17,10 @@ export async function getQuotas(request: Request, response: Response) {
   const quotas = await AppDataSource.getRepository(Quota).find({
     relations: {
       play: true,
-      game: true
+      game: {
+        guest: true,
+        host: true
+      }
     }
   });
   response.json(quotas);
@@ -41,7 +44,7 @@ export async function getQuotasClient(request: Request, response: Response) {
 export async function createQuota(request: Request, response: Response) {
   const data = request.body as QuotaDto;
   const play = await AppDataSource.getRepository(Play).findOne({ where: { id: data.playId } });
-  const game = await AppDataSource.getRepository(Game).findOne({ where: { id: data.gameId } });
+  const game = await AppDataSource.getRepository(Game).findOne({ where: { id: data.gameId }, relations: { host: true, guest: true } });
 
   const quota = await AppDataSource.getRepository(Quota).save({
     game,

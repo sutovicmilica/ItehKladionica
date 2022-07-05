@@ -1,17 +1,16 @@
 import * as express from "express"
-import { Request, Response } from "express"
 import { AppDataSource } from "./data-source"
 import { Routes } from "./routes"
 import * as jwt from 'jsonwebtoken'
 import { TOKEN } from "./entity/types"
 import { User } from "./entity/User"
+import * as cors from 'cors'
 import { login, register } from "./handler/userHandler"
 AppDataSource.initialize().then(async () => {
 
-    // create express app
     const app = express()
     app.use(express.json())
-
+    app.use(cors());
 
     app.post('/login', login);
     app.post('/register', register);
@@ -27,31 +26,34 @@ AppDataSource.initialize().then(async () => {
             res.sendStatus(401);
             return;
         }
-        const parsed = jwt.verify(splitted[1], TOKEN) as { id: number }
-        const user = await AppDataSource.getRepository(User).findOne({
-            where: {
-                id: parsed.id
+        try {
+            const parsed = jwt.verify(splitted[1], TOKEN) as { id: number }
+            const user = await AppDataSource.getRepository(User).findOne({
+                where: {
+                    id: parsed.id
+                }
+            })
+            if (!user) {
+                res.sendStatus(401);
+                return;
             }
-        })
-        if (!user) {
-            res.sendStatus(401);
-            return;
+            (req as any).user = user;
+            next();
+        } catch (error) {
+            res.status(400).json({ error })
         }
-        (req as any).user = user;
-        next();
     })
 
-    // register express routes from defined application routes
     Routes.forEach(route => {
         app[route.method](route.path, ...route.actions)
     })
 
-    // setup express app here
-    // ...
+    app.listen(5000, () => {
+        console.log("Express server has started on port 5000. Open http://localhost:5000/users to see results")
+    })
 
-    // start express server
-    app.listen(3000)
 
-    console.log("Express server has started on port 3000. Open http://localhost:3000/users to see results")
 
-}).catch(error => console.log(error))
+}).catch((error: any) => console.log({
+    ...error
+}))

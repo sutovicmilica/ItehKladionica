@@ -3,7 +3,7 @@ import { AppDataSource } from "../data-source";
 import { User } from "../entity/User";
 import * as jwt from 'jsonwebtoken'
 import { TOKEN } from "../entity/types";
-
+import * as dateFns from 'date-fns'
 export async function login(request: Request, response: Response) {
   const userRepository = AppDataSource.getRepository(User);
   const user = await userRepository.findOne({
@@ -28,6 +28,17 @@ export async function login(request: Request, response: Response) {
 
 export async function register(request: Request, response: Response) {
   const userRepository = AppDataSource.getRepository(User);
+
+  const birthDate = new Date(request.body.birthDate);
+
+  if (dateFns.intervalToDuration({
+    start: birthDate,
+    end: new Date()
+  }).years < 18) {
+    response.status(400).json({ error: 'You must be at least 18 years old' });
+    return;
+  }
+
   let user = await userRepository.findOne({
     where: {
       email: request.body.email
@@ -39,12 +50,12 @@ export async function register(request: Request, response: Response) {
     });
     return;
   }
-  const insertResult = await userRepository.insert({
+  console.log(request.body.birthDate)
+  user = await userRepository.save({
     ...request.body,
+    birthDate: new Date(request.body.birthDate),
     type: 'user'
   });
-  const id = insertResult.identifiers[0].id;
-  user = await userRepository.findOne(id);
   (request as any).user = user;
   const token = jwt.sign({ id: user.id }, TOKEN)
   response.json({
