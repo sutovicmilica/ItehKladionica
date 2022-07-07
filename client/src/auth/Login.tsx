@@ -13,7 +13,7 @@ interface Props {
 }
 
 export default function Login(props: Props) {
-  const [formValue, setFormValue] = useState<Partial<LoginUser>>({})
+  const [formValue, setFormValue] = useState<Partial<LoginUser>>({ email: '', password: '' })
   return (
     <div>
       <h2>Login</h2>

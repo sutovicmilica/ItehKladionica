@@ -2,7 +2,8 @@ export interface Game {
   id?: number,
   date: string,
   host: Team,
-  guest: Team
+  guest: Team,
+  quotas?: Quota[]
 }
 
 export interface Play {
@@ -65,4 +66,8 @@ export type RegisterUser = User & { password: string }
 export interface Page<T> {
   data: T[],
   total: number
+}
+
+export interface QoutaCollection {
+  [key: number]: Quota
 }

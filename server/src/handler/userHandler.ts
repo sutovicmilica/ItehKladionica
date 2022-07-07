@@ -50,7 +50,6 @@ export async function register(request: Request, response: Response) {
     });
     return;
   }
-  console.log(request.body.birthDate)
   user = await userRepository.save({
     ...request.body,
     birthDate: new Date(request.body.birthDate),

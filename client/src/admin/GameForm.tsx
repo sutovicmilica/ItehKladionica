@@ -1,25 +1,22 @@
 import React, { useState } from 'react'
-import { Button, Form, Modal, Schema, SelectPicker } from 'rsuite'
+import { Button, DatePicker, Form, Modal, Schema, SelectPicker } from 'rsuite'
 import useGet from '../hooks/useGet';
-import { Play, Game, Quota, Page } from '../types';
+import { Play, Game, Quota, Page, Team } from '../types';
 
 interface Props {
   open: boolean,
   onClose: () => void,
-  onSubmit: (qouta: any) => void
+  onSubmit: (qouta: any) => Promise<void>
 }
 const model = Schema.Model({
-  gameId: Schema.Types.NumberType().isRequired(),
-  playId: Schema.Types.NumberType().isRequired(),
-  value: Schema.Types.NumberType().isRequired().min(1.01),
+  hostId: Schema.Types.NumberType().isRequired(),
+  guestId: Schema.Types.NumberType().isRequired(),
+  date: Schema.Types.DateType().isRequired().min(new Date())
 })
 
-const now = Date.now()
-export default function QuotaForm(props: Props) {
-  const { data: plays } = useGet<Play[]>('/play');
+export default function GameForm(props: Props) {
   const [formState, setFormState] = useState({});
-  const [playSearch, setPlaySearch] = useState('')
-  const { data: games } = useGet<Page<Game>>('/game', { search: playSearch, date: now });
+  const { data: teams } = useGet<Team[]>('/team')
 
   return (
     <Modal
@@ -28,7 +25,7 @@ export default function QuotaForm(props: Props) {
     >
       <Modal.Header>
         <Modal.Title className='title'>
-          Create quota
+          Create game
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
@@ -49,22 +46,9 @@ export default function QuotaForm(props: Props) {
           }}
         >
           <Form.Group>
-            <Form.ControlLabel>Game</Form.ControlLabel>
-            <Form.Control name='gameId' accepter={SelectPicker}
-              onSearch={(val: string) => {
-                setPlaySearch(val);
-              }}
-              data={(games?.data || []).map(e => {
-                return {
-                  label: `${e.host.name || ''}-${e.guest.name || ''}`,
-                  value: e.id
-                }
-              })} />
-          </Form.Group>
-          <Form.Group>
-            <Form.ControlLabel>Play</Form.ControlLabel>
-            <Form.Control name='playId' accepter={SelectPicker}
-              data={(plays || []).map(e => {
+            <Form.ControlLabel>Host</Form.ControlLabel>
+            <Form.Control name='hostId' accepter={SelectPicker}
+              data={(teams || []).map(e => {
                 return {
                   label: e.name,
                   value: e.id
@@ -72,8 +56,18 @@ export default function QuotaForm(props: Props) {
               })} />
           </Form.Group>
           <Form.Group>
-            <Form.ControlLabel>Quota</Form.ControlLabel>
-            <Form.Control name='value' />
+            <Form.ControlLabel>Guest</Form.ControlLabel>
+            <Form.Control name='guestId' accepter={SelectPicker}
+              data={(teams || []).map(e => {
+                return {
+                  label: e.name,
+                  value: e.id
+                }
+              })} />
+          </Form.Group>
+          <Form.Group>
+            <Form.ControlLabel>Date</Form.ControlLabel>
+            <Form.Control name='date' accepter={DatePicker} format='dd.MM.yyyy HH:mm' />
           </Form.Group>
           <Button type='submit' appearance='primary'>Create</Button>
         </Form>

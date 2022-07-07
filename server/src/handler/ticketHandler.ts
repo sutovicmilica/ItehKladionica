@@ -17,7 +17,15 @@ export async function getClientTickets(request: Request, response: Response) {
   const tickets = await AppDataSource.getRepository(Ticket)
     .find({
       relations: {
-        items: true
+        items: {
+          quota: {
+            game: {
+              host: true,
+              guest: true
+            },
+            play: true
+          }
+        }
       },
       where: {
         user: {
@@ -32,7 +40,16 @@ export async function getAdminTickets(request: Request, response: Response) {
   const tickets = await AppDataSource.getRepository(Ticket)
     .find({
       relations: {
-        items: true
+        user: true,
+        items: {
+          quota: {
+            game: {
+              host: true,
+              guest: true
+            },
+            play: true
+          }
+        }
       },
     });
   response.json(tickets);
@@ -43,7 +60,7 @@ export async function createTicket(request: Request, response: Response) {
   const user = (request as any).user as User;
   const now = new Date()
   const ticket = await AppDataSource.manager.transaction(async manager => {
-    const newTicket = await manager.save(Ticket, {
+    let newTicket = await manager.save(Ticket, {
       user,
       amount: data.amount,
       date: now,
@@ -69,6 +86,7 @@ export async function createTicket(request: Request, response: Response) {
       })
       newTicket.items.push(ticketItem);
       newTicket.posibleWin = newTicket.posibleWin * quota.value;
+      newTicket = await manager.save(Ticket, newTicket);
     }
     return newTicket;
   })

@@ -1,4 +1,5 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Quota } from "./Quota";
 import { Team } from "./Team";
 
 
@@ -16,4 +17,7 @@ export class Game {
 
   @ManyToOne(() => Team, { onDelete: 'CASCADE' })
   guest: Team;
+
+  @OneToMany(() => Quota, q => q.game)
+  quotas: Quota[];
 }

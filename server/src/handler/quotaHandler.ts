@@ -26,20 +26,6 @@ export async function getQuotas(request: Request, response: Response) {
   response.json(quotas);
 }
 
-export async function getQuotasClient(request: Request, response: Response) {
-
-  const quotas = await AppDataSource.getRepository(Quota).find({
-    relations: {
-      play: true,
-      game: {}
-    },
-    where: {
-      game: Not(null),
-      status: Not('CANCELED')
-    }
-  });
-  response.json(quotas);
-}
 
 export async function createQuota(request: Request, response: Response) {
   const data = request.body as QuotaDto;
@@ -59,48 +45,63 @@ export async function changeStatus(request: Request, response: Response) {
   const status = request.body.status;
   const id = Number(request.params.id);
 
-  await AppDataSource.manager.transaction(async manager => {
-    await manager.save(Quota, { id, status });
-    const qb = manager.createQueryBuilder(Ticket, 't')
-    const tickets = await qb
-      .innerJoinAndSelect('t.items', 'item')
-      .innerJoinAndSelect('item.quota', 'quota')
-      .where(':id IN ' +
-        qb.subQuery()
-          .select('id')
-          .from(TicketItem, 'ti1')
-          .where('ti1.ticketId = t.id')
-          .getQuery()
-      )
-      .setParameter('id', id)
-      .getMany();
-
-    for (let ticket of tickets) {
-      let rejected = false;
-      let pending = false;
-      for (let ticketItem of ticket.items) {
-        let itemStatus = ticketItem.quota.status;
-        if (itemStatus === 'LOST') {
-          rejected = true;
-          break;
+  try {
+    await AppDataSource.manager.transaction(async manager => {
+      const quota = await manager.findOne(Quota, {
+        where: { id },
+        relations: {
+          game: true
         }
-        if (itemStatus === 'PENDING') {
-          pending = true;
+      })
+      if (quota.game.date > new Date()) {
+        throw new Error('Game not started yet')
+      }
+      await manager.save(Quota, { id, status });
+      const qb = manager.createQueryBuilder(Ticket, 't')
+      const tickets = await qb
+        .innerJoinAndSelect('t.items', 'item')
+        .innerJoinAndSelect('item.quota', 'quota')
+        .where(':id IN ' +
+          qb.subQuery()
+            .select('ti1.quotaId')
+            .from(TicketItem, 'ti1')
+            .where('ti1.ticketId = t.id')
+            .getQuery()
+        )
+        .setParameter('id', id)
+        .getMany();
+      for (let ticket of tickets) {
+        let rejected = false;
+        let pending = false;
+        let total = 1;
+        for (let ticketItem of ticket.items) {
+          total = total * (ticketItem.quota.status === 'CANCELED' ? 1 : ticketItem.quotaValue);
+          let itemStatus = ticketItem.quota.status;
+          if (itemStatus === 'LOST') {
+            rejected = true;
+            continue;
+          }
+          if (itemStatus === 'PENDING') {
+            pending = true;
+          }
         }
+        ticket.posibleWin = ticket.amount * total;
+        if (rejected) {
+          ticket.status = 'LOST';
+          continue;
+        }
+        if (pending) {
+          ticket.status = 'PENDING';
+          continue;
+        }
+        ticket.status = 'WON';
       }
-      if (rejected) {
-        ticket.status = 'LOST';
-        continue;
-      }
-      if (pending) {
-        ticket.status = 'PENDING';
-        continue;
-      }
-      ticket.status = 'WON';
-
-    }
-
-  });
+      await manager.save(Ticket, tickets);
+    });
+  } catch (error) {
+    response.status(400).json({ error })
+    return;
+  }
 
   response.sendStatus(204);
 

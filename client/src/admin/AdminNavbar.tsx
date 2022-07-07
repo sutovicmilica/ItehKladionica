@@ -19,6 +19,7 @@ export default function AdminNavbar(props: Props) {
         <Nav.Item as={NavLink} to='/'>Tickets</Nav.Item>
         <Nav.Item as={NavLink} to='/quota'>Quotas</Nav.Item>
         <Nav.Item as={NavLink} to='/game'>Games</Nav.Item>
+        <Nav.Item as={NavLink} to='/statistics'>Statistics</Nav.Item>
       </Nav>
       <Nav pullRight>
         <Dropdown style={{ width: '100%' }} title={props.user.firstName + ' ' + props.user.lastName}>

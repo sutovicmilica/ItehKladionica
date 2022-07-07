@@ -12,8 +12,11 @@ AppDataSource.initialize().then(async () => {
     app.use(express.json())
     app.use(cors());
 
+
     app.post('/login', login);
     app.post('/register', register);
+
+
 
     app.use(async (req, res, next) => {
         const authorization = req.headers.authorization;

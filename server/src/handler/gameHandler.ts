@@ -24,10 +24,29 @@ export async function createGame(request: Request, response: Response) {
   response.json(game);
 }
 
+export async function getGame(request: Request, response: Response) {
+  const id = Number(request.params.id);
+  const game = await AppDataSource.getRepository(Game)
+    .findOne({
+      where: {
+        id
+      },
+      relations: {
+        guest: true,
+        host: true,
+        quotas: {
+          play: true
+        }
+      },
+    });
+  response.json(game);
+}
+
+
 export async function getGames(request: Request, response: Response) {
   const page = Number(request.query.page) || 0;
   const size = Number(request.query.size) || 20;
-  const date = Number(request.query.date) || undefined;
+  const date = request.query.date ? new Date(Number(request.query.date)) : undefined;
   const search = request.query.search || '';
 
   const queryBuilder = AppDataSource.getRepository(Game)
@@ -36,9 +55,14 @@ export async function getGames(request: Request, response: Response) {
     .leftJoinAndSelect('g.guest', 'guest')
   if (date) {
     queryBuilder.where('DATE(g.date) >= DATE(:d)', { d: date });
+    if (search) {
+      queryBuilder.andWhere(`CONCAT(host.name,'-',guest.name) LIKE :search`, {
+        search: `%${search}%`
+      })
+    }
   }
-  if (search) {
-    queryBuilder.where(`CONCAT(g.host.name,'-',g.guest.name) LIKE :search`, {
+  if (search && !date) {
+    queryBuilder.where(`CONCAT(host.name,'-',guest.name) LIKE :search`, {
       search: `%${search}%`
     })
   }
@@ -53,9 +77,6 @@ export async function deleteGame(request: Request, response: Response) {
   const id = Number(request.params.id);
 
   await AppDataSource.manager.transaction(async manager => {
-    const game = manager.findOne(Game, {
-      where: { id: id }
-    });
     const ticketItems = await manager.find(TicketItem, {
       where: {
         quota: {
@@ -79,6 +100,7 @@ export async function deleteGame(request: Request, response: Response) {
     await manager.save(Quota, quotas);
     ticketItems.forEach(item => {
       item.quotaValue = 1;
+
     })
     await manager.save(TicketItem, ticketItems);
     await manager.delete(Game, { id: id });

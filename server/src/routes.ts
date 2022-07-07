@@ -3,10 +3,12 @@ import { Play } from "./entity/Play";
 import { Team } from "./entity/Team";
 import { User } from "./entity/User"
 import { getEntities } from "./handler/basicHandler";
-import { createGame, deleteGame, getGames } from "./handler/gameHandler";
-import { changeStatus, createQuota, getQuotas, getQuotasClient } from "./handler/quotaHandler";
+import { createGame, deleteGame, getGame, getGames } from "./handler/gameHandler";
+import { changeStatus, createQuota, getQuotas } from "./handler/quotaHandler";
+import { getStatistics } from "./handler/statisticsHandler";
 import { createTicket, getAdminTickets, getClientTickets } from "./handler/ticketHandler";
 import { check } from "./handler/userHandler";
+import { getWeather } from "./handler/weatherHandler";
 
 
 interface Route {
@@ -58,8 +60,8 @@ export const Routes: Route[] = [
   },
   {
     method: 'get',
-    path: '/user/quota',
-    actions: [typeMiddleware('user'), getQuotasClient]
+    path: '/weather',
+    actions: [getWeather]
   },
   {
     method: 'get',
@@ -82,6 +84,11 @@ export const Routes: Route[] = [
     actions: [getGames]
   },
   {
+    method: 'get',
+    path: '/game/:id',
+    actions: [getGame]
+  },
+  {
     method: 'post',
     path: '/game',
     actions: [typeMiddleware('admin'), createGame]
@@ -90,5 +97,10 @@ export const Routes: Route[] = [
     method: 'delete',
     path: '/game/:id',
     actions: [typeMiddleware('admin'), deleteGame]
-  }
+  },
+  {
+    method: 'get',
+    path: '/statistics',
+    actions: [typeMiddleware('admin'), getStatistics]
+  },
 ]

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import './App.css';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import useGet from './hooks/useGet';
@@ -10,6 +10,9 @@ import Login from './auth/Login';
 import AdminNavbar from './admin/AdminNavbar';
 import GamesPage from './admin/GamesPage';
 import QuotasPage from './admin/QuotasPage';
+import { TicketsPageAdmin } from './admin/TicketsPage';
+import UserApp from './user/UserApp';
+import StatisticsPage from './admin/StatisticsPage';
 function App() {
 
   const {
@@ -68,9 +71,10 @@ function App() {
           <AdminNavbar user={user} onLogout={onLogout} />
           <div className='admin-main content'>
             <Routes>
-              <Route path='/' element={(<div>fdsg</div>)} />
-              <Route path='/game' element={(<GamesPage />)} />
+              <Route path='/' element={(<TicketsPageAdmin />)} />
+              <Route path='/game' element={(<GamesPage user={user} />)} />
               <Route path='/quota' element={(<QuotasPage />)} />
+              <Route path='/statistics' element={(<StatisticsPage />)} />
             </Routes>
 
           </div>
@@ -78,7 +82,9 @@ function App() {
       </BrowserRouter>
     )
   }
-  return null;
+  return (
+    <UserApp user={user} onLogout={onLogout} />
+  )
 }
 
 export default App;

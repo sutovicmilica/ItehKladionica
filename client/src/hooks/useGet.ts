@@ -28,7 +28,7 @@ export default function useGet<T>(path: string, params?: Record<string, string |
     error,
     refetch: () => {
       setLoading(true);
-      axios.get(path + (params ? queryString.stringify(params) : ''))
+      axios.get(path + (params ? ('?' + queryString.stringify(params)) : ''))
         .then(res => {
           setData(res.data);
         })

@@ -14,7 +14,7 @@ export default function QuotasPage() {
     return null;
   }
 
-  const changeStatus = async (id: number, status: Exclude<PlayStatus | 'CANCELED', 'PENDING'>) => {
+  const changeStatus = async (id: number, status: PlayStatus | 'CANCELED') => {
     await axios.patch('/admin/quota/' + id, { status });
     setQuotas(prev => {
       if (!prev) {
@@ -90,7 +90,7 @@ export default function QuotasPage() {
           <Table.HeaderCell flexGrow={3}>Status</Table.HeaderCell>
           <Table.Cell dataKey='status' />
         </Table.Column>
-        <Table.Column flexGrow={2}>
+        <Table.Column flexGrow={3}>
           <Table.HeaderCell>Change status</Table.HeaderCell>
           <Table.Cell>
             {
@@ -99,6 +99,11 @@ export default function QuotasPage() {
                 return (
                   <ButtonToolbar>
                     <ButtonGroup>
+                      <Button
+                        onClick={() => {
+                          changeStatus(q.id || 0, 'PENDING')
+                        }}
+                      >PENDING</Button>
                       <Button
                         onClick={() => {
                           changeStatus(q.id || 0, 'WON')
