@@ -1,9 +1,12 @@
 import { Request, Response } from "express";
+import { In } from "typeorm";
 import { AppDataSource } from "../data-source";
 import { Game } from "../entity/Game";
 import { Quota } from "../entity/Quota";
 import { Team } from "../entity/Team";
+import { Ticket } from "../entity/Ticket";
 import { TicketItem } from "../entity/TicketItem";
+import { updateTicketStatuses } from "./quotaHandler";
 
 interface GameDto {
   date: number,
@@ -100,9 +103,20 @@ export async function deleteGame(request: Request, response: Response) {
     await manager.save(Quota, quotas);
     ticketItems.forEach(item => {
       item.quotaValue = 1;
-
     })
+
     await manager.save(TicketItem, ticketItems);
+    const tickets = await manager.find(Ticket, {
+      relations: {
+        items: {
+          quota: true,
+        },
+      },
+      where: {
+        id: In(ticketItems.map(ti => ti.ticketId))
+      }
+    })
+    await updateTicketStatuses(manager, tickets);
     await manager.delete(Game, { id: id });
   })
 

@@ -90,7 +90,7 @@ export default function QuotasPage() {
           <Table.HeaderCell flexGrow={3}>Status</Table.HeaderCell>
           <Table.Cell dataKey='status' />
         </Table.Column>
-        <Table.Column flexGrow={3}>
+        <Table.Column flexGrow={7}>
           <Table.HeaderCell>Change status</Table.HeaderCell>
           <Table.Cell>
             {

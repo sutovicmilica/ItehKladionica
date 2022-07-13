@@ -40,7 +40,7 @@ export default function GameShowPage(props: Props) {
         (new Date() < new Date(game.date) && (
           <div>
             <div className='title'>
-              Qoutas
+              Quotas
             </div>
             <Table
               data={game.quotas || []}

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Not } from "typeorm";
+import { EntityManager, Not } from "typeorm";
 import { AppDataSource } from "../data-source";
 import { Game } from "../entity/Game";
 import { Play } from "../entity/Play";
@@ -70,33 +70,7 @@ export async function changeStatus(request: Request, response: Response) {
         )
         .setParameter('id', id)
         .getMany();
-      for (let ticket of tickets) {
-        let rejected = false;
-        let pending = false;
-        let total = 1;
-        for (let ticketItem of ticket.items) {
-          total = total * (ticketItem.quota.status === 'CANCELED' ? 1 : ticketItem.quotaValue);
-          let itemStatus = ticketItem.quota.status;
-          if (itemStatus === 'LOST') {
-            rejected = true;
-            continue;
-          }
-          if (itemStatus === 'PENDING') {
-            pending = true;
-          }
-        }
-        ticket.posibleWin = ticket.amount * total;
-        if (rejected) {
-          ticket.status = 'LOST';
-          continue;
-        }
-        if (pending) {
-          ticket.status = 'PENDING';
-          continue;
-        }
-        ticket.status = 'WON';
-      }
-      await manager.save(Ticket, tickets);
+      updateTicketStatuses(manager, tickets);
     });
   } catch (error) {
     response.status(400).json({ error })
@@ -105,4 +79,35 @@ export async function changeStatus(request: Request, response: Response) {
 
   response.sendStatus(204);
 
+}
+
+
+export async function updateTicketStatuses(manager: EntityManager, tickets: Ticket[]) {
+  for (let ticket of tickets) {
+    let rejected = false;
+    let pending = false;
+    let total = 1;
+    for (let ticketItem of ticket.items) {
+      total = total * (ticketItem.quota.status === 'CANCELED' ? 1 : ticketItem.quotaValue);
+      let itemStatus = ticketItem.quota.status;
+      if (itemStatus === 'LOST') {
+        rejected = true;
+        continue;
+      }
+      if (itemStatus === 'PENDING') {
+        pending = true;
+      }
+    }
+    ticket.posibleWin = ticket.amount * total;
+    if (rejected) {
+      ticket.status = 'LOST';
+      continue;
+    }
+    if (pending) {
+      ticket.status = 'PENDING';
+      continue;
+    }
+    ticket.status = 'WON';
+  }
+  await manager.save(Ticket, tickets);
 }
